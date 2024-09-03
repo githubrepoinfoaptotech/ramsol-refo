@@ -1,0 +1,6 @@
+"id","title","numberOfMessages","amount","description","pricingInt","pricingText","uniqueId","createdAt","updatedAt"
+"26da1b0d-b99f-42b7-a06e-1dab774d0cd7","Professional ",2000,"1000","This is professional plan.",10004,"PLAN","PLAN10004","2023-05-06 05:03:45.852+00","2023-05-16 10:13:11.896+00"
+"49b35cfd-3d56-4f9f-8cf3-40982ceda8c4","Enterprise",4000,"2000","This is enterprise plan.",10005,"PLAN","PLAN10005","2023-05-06 05:04:55.227+00","2023-05-16 10:13:25.065+00"
+"ad30deef-3765-413a-b032-1f2bf7058981","Free",100,"0","This is Free Test Plan.",10001,"PLAN","PLAN10001","2023-05-06 05:01:44.989+00","2023-06-01 11:16:40.136+00"
+"b30964b6-d6db-4113-842b-0d4bba9b11a4","Emergency Plan",100,"50","This plan is only for emergency purpose!",10002,"PLAN","PLAN10002","2023-05-12 08:13:37.194+00","2023-05-16 10:12:54.482+00"
+"c84d6ba2-e3e5-45a6-9818-0f8081618ab1","Standard",1000,"500","This is standard plan.",10003,"PLAN","PLAN10003","2023-05-06 05:03:12.743+00","2023-05-16 10:13:02.73+00"

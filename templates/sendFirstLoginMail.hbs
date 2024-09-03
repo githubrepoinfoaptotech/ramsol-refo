@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+        .header {
+            background-color: #4CAF50;
+            color: #ffffff;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .content h1 {
+            font-size: 24px;
+            margin-top: 0;
+        }
+        .content p {
+            margin-bottom: 20px;
+        }
+        .footer {
+            background-color: #f4f4f4;
+            color: #888888;
+            text-align: center;
+            padding: 10px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>User Login Notification</h1>
+        </div>
+        <div class="content">
+            <h1>Hello Administrator</h1>
+            <p>We wanted to inform you that a user has logged in for the first time.</p>
+            <p><strong>User Details:</strong></p>
+            <ul>
+                <li><strong>Username:</strong> {{name}} </li>
+                <li><strong>Email:</strong> {{email}} </li>
+                <li><strong>Login Time:</strong> {{time}} </li>
+            </ul>
+            <p>Please review the user details and take any necessary actions.</p>
+            <p>Best Regards,</p>
+            <p>Infoapto System</p>
+        </div>
+        <div class="footer">
+            <p>&copy; 2024@infoaptotechnologies. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
