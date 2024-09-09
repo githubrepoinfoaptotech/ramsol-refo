@@ -16,6 +16,7 @@ const check_auth=require('../middlewares/check_auth');
 const fileUploader=require("../middlewares/fileUploadMulter");      
 const extracttext=require("../middlewares/extractText");     
 const AWS = require("aws-sdk");
+const invoiceCadidatesSubContractController = require('../controllers/invoiceCadidatesSubContractController');
 require("dotenv").config(); 
 
 
@@ -91,4 +92,7 @@ route.post('/getBankDetails',check_auth,redeemCoinsControllers.getBankDetails);
 route.post('/getUniqueIdForInvoice',check_auth,redeemCoinsControllers.getUniqueIdForInvoice);
 route.post('/setUserNda',check_auth,fileUploader.ndaUploader,userController.setUserNda);
 route.post('/getUserNda',check_auth,userController.getUserNda);
+route.post("/getInvoiceableCandidates",check_auth,invoiceCadidatesSubContractController.getInvoiceableCandidates);
+route.post("/invoiceCandidates",check_auth,fileUploader.subContractInVoiceUploader,invoiceCadidatesSubContractController.invoiceCandidates);
+route.post("/viewAllInvoices",check_auth,invoiceCadidatesSubContractController.viewAllInvoices);
 module.exports=route; 

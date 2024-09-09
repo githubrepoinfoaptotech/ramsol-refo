@@ -9,6 +9,8 @@ const supportTicketController=require("../controllers/supportTicketController");
 const pricingController=require("../controllers/pricingController");
 const backupController=require("../controllers/backupController");
 const redeemCoinsControllers=require("../controllers/redeemCoinsControllers");
+const invoiceCadidatesSubContractController=require("../controllers/invoiceCadidatesSubContractController");
+
 const express = require('express');
 const route = express.Router();
 require("dotenv").config();
@@ -43,7 +45,7 @@ route.post('/addUser',check_auth_admin,userController.addUser);
 route.post('/viewAllUsers',check_auth_admin,userController.viewAllUsers);
 route.post('/editUser',check_auth_admin,userController.editUser);
 route.post('/userList',check_auth_admin,userController.userList);
-route.post('/allRecruiterList',check_auth_admin,userController.allRecruiterList);
+route.post('/allRecruiterList',check_auth_CC,userController.allRecruiterList);
 route.post('/updateProfile',check_auth_admin,userController.updateProfile);
 route.post('/editMyCompanySettings',check_auth_admin,userController.editMyCompanySettings)
 route.post('/myCompanySettings',check_auth_admin,userController.myCompanySettings)
@@ -152,6 +154,8 @@ route.post("/orgPocForCompany",check_auth_CC,userController.orgPocForCompany);
 route.post("/getVendorCreds",check_auth_admin,userController.getVendorCreds);
 
 
+
+
 //reccoins
 
 route.post("/confirmTransfer",check_auth_admin,redeemCoinsControllers.confirmTransfer);
@@ -160,9 +164,13 @@ route.post("/rejectInvoice",check_auth_admin,redeemCoinsControllers.rejectInvoic
 
 
 //assigned data
-route.post("/getAssigendData",check_auth_admin,requirementController.getAssigendData);
-route.post("/assignMulitpleRecuritersToRequirements",check_auth_admin,requirementController.assignMulitpleRecuritersToRequirements);
+route.post("/getAssigendData",check_auth_CC,requirementController.getAssigendData);
+route.post("/assignMulitpleRecuritersToRequirements",check_auth_CC,requirementController.assignMulitpleRecuritersToRequirements);
 //nda
 route.post("/removeNda",check_auth_admin,userController.removeNda);
-
+//subcontractInvoices
+route.post("/getAllInvoiceableCandidates",check_auth_admin,invoiceCadidatesSubContractController.getAllInvoiceableCandidates);
+route.post("/viewAllInvoicedCandidates",check_auth_admin,invoiceCadidatesSubContractController.viewAllInvoicedCandidates);
+route.post("/paySubContractInvoice",check_auth_admin,invoiceCadidatesSubContractController.paySubContractInvoice);
+route.post("/rejectSubContractInvoice",check_auth_admin,invoiceCadidatesSubContractController.rejectSubContractInvoice);
 module.exports = route;     

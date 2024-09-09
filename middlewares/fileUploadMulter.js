@@ -316,6 +316,38 @@ exports.inVoiceUploader=async(req,res,next)=>{
 });
 };
 
+exports.subContractInVoiceUploader=async(req,res,next)=>{
+
+  var upload = multer({
+    limits: {
+        fileSize: maxSize,
+      },
+    storage: multerS3({
+        s3: s3,
+        bucket: "ramsol-production-refo"+"/"+"subContractinvoice",
+        key: function (req, file, cb) {
+            if (path.extname(file.originalname).toLowerCase() === '.pdf') {
+                cb(null, req.mainId+"/"+req.mainId+"_"+file.originalname);
+              }
+              else{
+                return cb(new Error('Only Pdf are allowed'));
+              }
+          
+        }
+      })
+}).single('invoice',1);
+
+ upload(req,res, async function(err){
+  console.log(req.file);
+    if(err){
+        res.status(200).json({status:false,message: 'Unable to upload pdf check the document size and type!!'});
+
+    } else {
+        next();
+    }
+});
+};
+
 exports.ndaUploader=async(req,res,next)=>{
   console.log(process.env.liveS3Key);
   var upload = multer({

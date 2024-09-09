@@ -76,14 +76,7 @@ exports.viewAllRedumptionsVendor=async(req,res)=>{
     try{
     if(req.body.page)
     {
-        if(req.body.page)
-    {
         var page = req.body.page;
-    }
-    else
-    {
-        var page=1;
-    }
     }
     else
     {

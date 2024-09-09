@@ -9,6 +9,8 @@ const dashboardController=require('../controllers/dashboardController');
 const validation=require("../middlewares/validation");
 const filefunctions=require("../middlewares/fileUploadMulter");
 const candidateNotes=require('../controllers/candidateNotesController');
+const userController=require('../controllers/userController');
+const invoiceCadidatesSubContractController = require("../controllers/invoiceCadidatesSubContractController");
 const route=Router();
 
 route.post('/addRequirement',check_auth_CC,validation.addRequirementValidation,requirementController.addRequirement);
@@ -36,4 +38,8 @@ route.post("/approveNotes",check_auth_CC,candidateNotes.approveNotes);
 route.post("/resendOtp",check_auth_mail,ClientController.resendOtp);
 route.post("/getMyProjects",check_auth_CC,ClientController.getMyProjects);
 route.post("/removeAssignedRequirements",check_auth_CC,requirementController.removeAssignedRequirements);
+route.post("/viewAllAssigendRequirementsCC",check_auth_CC,requirementController.viewAllAssigendRequirementsCC);
+route.post("/getVendorCreds",check_auth_CC,userController.getVendorCredsCC);
+route.post("/getAllInvoiceableCandidatesCC",check_auth_CC,invoiceCadidatesSubContractController.getAllInvoiceableCandidatesCC);
+
 module.exports=route;

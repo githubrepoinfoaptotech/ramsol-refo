@@ -322,7 +322,9 @@ exports.myRequirements = async (req, res) => {
     });
 };
 exports.viewRequirement = async (req, res) => {
+  console.log("here");
   console.log(req.body);
+  try{
   requirements
     .findOne({ where: { id: req.body.id },include:[
       {
@@ -350,7 +352,14 @@ exports.viewRequirement = async (req, res) => {
       {
         model:assignedRequirements,
         attributes:["recruiterId","id"],
-        include:[{model:recruiter,required:true,attributes:["firstName","lastName"],include:[{model:user,required:true,where:{ roleName: { [Op.ne]: "SUBVENDOR" }}}]}]
+        include:[{model:recruiter,required:true,attributes:["firstName","lastName"],include:[{model:user,required:true,where: {
+          roleName: {
+            [Op.and]: [
+              { [Op.ne]: "SUBVENDOR" },
+              { [Op.ne]: "SUBCONTRACT" }
+            ]
+          }
+        }}]}]
       }
     ],attributes:[
       'requirementName',
@@ -392,9 +401,16 @@ exports.viewRequirement = async (req, res) => {
       }
     })
     .catch((e) => {
+      console.log("error Occured");
       console.log(e);
-      res.status(500).json({ status: false, message: "Error" });
+      res.status(500).json({ status: false, message: "Error While Fetiching" });
     });
+  }
+  catch(e)
+  {
+    console.log(e);
+    res.status(500).json({ status: false, message: "Error" });
+  }
 };
 
 
@@ -700,6 +716,58 @@ exports.viewAllAssigendRequirements=async(req,res)=>{
   });
 }
 
+exports.viewAllAssigendRequirementsCC=async(req,res)=>{
+  console.log("in");
+  var limit=50;
+  var page=req.body.page;
+  var mywhere={mainId:req.mainId,recruiterId:req.body.recruiterId};
+  if(req.body.fromDate&&req.body.toDate){
+    if (req.body.fromDate && req.body.toDate) {
+
+      const fromDate = moment(req.body.fromDate).startOf('day').toISOString();
+      const toDate = moment(req.body.toDate).endOf('day').toISOString();
+      mywhere.createdAt = {
+        [Op.between]: [fromDate, toDate]
+      }
+    }
+  }
+  if(req.body.requirementId){
+    mywhere.requirementId=req.body.requirementId;
+  }
+  console.log(mywhere);
+  await assignedRequirements.findAndCountAll({
+    where: mywhere,
+    include: [
+      {
+        model: requirements,
+        required: true,
+        attributes: ['requirementName', 'uniqueId'],
+        include: [
+          {
+            model: client,
+            attributes: ['handlerId'],
+            where: { handlerId: req.recruiterId },
+            required: true
+          }
+        ]
+      },
+      {
+        model: recruiter,
+        attributes: ['firstName', 'lastName']
+      }
+    ],
+    limit: limit,
+    offset: page * limit - limit,
+    order: [['createdAt', 'DESC']]
+  })
+  .then(data=>{
+    res.status(200).json({status:true,data:data.rows,count:data.count});
+  }).catch(e=>{
+    console.log(e);
+    res.status(500).json({status:false,message:"ERROR"});
+  });
+}
+
 exports.viewRequirementCandidates=async(req,res)=>{
   if(req.body.page)
     {
@@ -890,6 +958,34 @@ exports.getAssigendData= async (req, res) => {
   await assignedRequirements.findAndCountAll({ limit: limit,
     offset: page * limit - limit,
     order: [["createdAt", "DESC"]],where:{requirementId:req.body.requirementId},attributes:['id','createdAt'],include:[{model:recruiter,required:true,include:[{model:user,required:true,where:{roleName:roleName}}]}]}).then(data=>{
+      res.status(200).json({status:true,data:data.rows,count:data.count});
+  }).catch(e=>{
+    console.log(e);
+    res.status(500).json({status:false,message:"ERROR"});
+  });
+};
+
+exports.getAssigendDataCC= async (req, res) => {
+  if(req.body.page)
+    {
+        var page = req.body.page;
+    }
+    else
+    {
+        var page=1;
+    }
+    var limit = 10;
+  if(!req.body.roleName)
+  {
+    roleName="SUBVENDOR"
+  }
+  else
+  {
+    roleName=req.body.roleName;
+  }
+  await assignedRequirements.findAndCountAll({ limit: limit,
+    offset: page * limit - limit,
+    order: [["createdAt", "DESC"]],where:{requirementId:req.body.requirementId},attributes:['id','createdAt'],include:[{model:requirements},{model:recruiter,required:true,include:[{model:user,required:true,where:{roleName:roleName}}]}]}).then(data=>{
       res.status(200).json({status:true,data:data.rows,count:data.count});
   }).catch(e=>{
     console.log(e);

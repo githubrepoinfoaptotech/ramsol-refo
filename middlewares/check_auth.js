@@ -36,7 +36,7 @@ module.exports = async (req,res,next) => {
             }
         }
         else{
-            res.status(401).json({ status: false, message: "User Inactive" });
+            res.status(401).json({ status: false, message: "User Inactive",logout:true});
         }
     }   
     catch(err){

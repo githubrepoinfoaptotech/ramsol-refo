@@ -40,6 +40,7 @@ const myCandidateStatus = require("../models/myCandidateStatus");
 const existingCandidates = require("../models/existingCandidate");
 const clients = require("../models/client");
 const candidateNote = require("../models/candidateNotes.js");
+const invoiceableSubContractCandidates = require("../models/SubContractInvoice/invoiceableSubContractCandidates.js");
 //
 exports.addcandidateRequirement = async (req, res) => {
   try {
@@ -161,8 +162,10 @@ exports.updateCandidatePhoto=async(req,res)=>{
 };
 
 exports.checkCandidateDetailExist = async (req, res) => {
+  try{
+    console.log("in");
   const roleName=req.roleName;
-  if(roleName=="FREELANCER"||roleName=="SUBVENDOR"){
+  if(roleName=="FREELANCER"||roleName=="SUBVENDOR"||roleName=="SUBCONTRACT"){
     var can_detail = await candidateDetails.findOne({
       where: { mobile: "91" + req.body.mobile, mainId: req.mainId ,createdBy:req.recruiterId,isExternal:"YES"},
     });
@@ -182,11 +185,17 @@ exports.checkCandidateDetailExist = async (req, res) => {
       res.status(200).json({ status: false, message: "No data found" });
     }
   }
+}
+catch(e)
+{
+  console.log(e);
+  res.status(500).json({ status: false, mesage: "Error" });
+}
  
 };
 exports.candidateExist=async(req,res)=>{
   const roleName=req.roleName;
-  if(roleName=="FREELANCER"||roleName=="SUBVENDOR"){
+  if(roleName=="FREELANCER"||roleName=="SUBVENDOR"||roleName=="SUBCONTRACT"){
   await candidate
       .findOne({
         where: { mainId:req.mainId },
@@ -252,11 +261,16 @@ exports.candidateExist=async(req,res)=>{
 exports.addCandidate = async (req, res) => {
   const roleName=req.roleName;
   try {
-    if(roleName=="FREELANCER"||roleName=="SUBVENDOR"){
-      if(roleName=="FREELANCER"){
-         var sourceData=await Source.findOne({where:{name:"Freelancer"},attributes:['id']});
+    if(roleName=="FREELANCER"||roleName=="SUBVENDOR"||roleName=="SUBCONTRACT"){
+      if(roleName=="SUBVENDOR"){
+        var sourceData=await Source.findOne({where:{name:"Vendor"},attributes:['id']});
       }
-      else{
+      else if(roleName=="SUBCONTRACT")
+      {
+        var sourceData=await Source.findOne({where:{name:"Sub-Contract"},attributes:['id']});
+      }
+      else
+      {
         var sourceData=await Source.findOne({where:{name:"Vendor"},attributes:['id']});
       }
     //  myCandidate.isExternal="YES";
@@ -1450,16 +1464,63 @@ exports.viewCandidate = async (req, res) => {
 exports.myCandidates = async (req, res) => {
   try {
     
-    if(req.body.page)
+    var page= req.body.page?req.body.page:0;
+    if(req.roleName=="CLIENTCOORDINATOR")
     {
-        var page = req.body.page;
+      mywhere = { mainId: req.mainId };
+      var includeReq={
+        model: requirement,
+        required:true,
+        attributes: ["requirementName", "uniqueId","cvJoinValue","cvShareValue","cvInterviewDoneValue","joinedSharePercentage"],
+        include: [
+          {
+            model: statusCode,
+            required:true,
+            attributes: ["statusName","statusCode"],
+          },
+          {
+            model: client,
+            required:true,
+            attributes: ["clientName","handlerId"],
+            where:{handlerId:req.recruiterId},
+            include: [{ model: statusCode,   required:true,attributes: ["statusName","statusCode"] },{ model: recruiter,   required:true,as: 'recruiter', attributes: ['id', 'firstName', 'lastName'] },
+            { model: recruiter,   required:true,as: 'handler', attributes: ['id', 'firstName', 'lastName'] }],
+          },
+          {
+            model: recruiter,
+            required:true,
+            attributes: ["firstName", "lastName", "mobile"],
+          },
+        ],
+      };
     }
     else
     {
-        var page=1;
+      mywhere = { mainId: req.mainId, recruiterId: req.recruiterId };
+      var includeReq={
+        model: requirement,
+        attributes: ["requirementName", "uniqueId","cvJoinValue","cvShareValue","cvInterviewDoneValue","joinedSharePercentage"],
+        include: [
+          {
+            model: statusCode,
+            attributes: ["statusName","statusCode"],
+          },
+          {
+            model: client,
+            attributes: ["clientName","handlerId"],
+            include: [{ model: statusCode, attributes: ["statusName","statusCode"] },{ model: recruiter, as: 'recruiter', attributes: ['id', 'firstName', 'lastName'] },
+            { model: recruiter, as: 'handler', attributes: ['id', 'firstName', 'lastName'] }],
+          },
+          {
+            model: recruiter,
+            attributes: ["firstName", "lastName", "mobile"],
+          },
+        ],
+      };
     }
+    
     var limit = 10;
-    mywhere = { mainId: req.mainId, recruiterId: req.recruiterId };
+    
 
     if (req.body.fromDate && req.body.toDate) {
       const fromDate = moment(req.body.fromDate).startOf("day").toISOString();
@@ -1570,27 +1631,7 @@ exports.myCandidates = async (req, res) => {
             model: candidateStatus,
             include: [{ model: statusCode, attributes: ["statusName","statusCode"] }],
           },
-
-          {
-            model: requirement,
-            attributes: ["requirementName", "uniqueId","cvJoinValue","cvShareValue","cvInterviewDoneValue","joinedSharePercentage"],
-            include: [
-              {
-                model: statusCode,
-                attributes: ["statusName","statusCode"],
-              },
-              {
-                model: client,
-                attributes: ["clientName"],
-                include: [{ model: statusCode, attributes: ["statusName","statusCode"] },{ model: recruiter, as: 'recruiter', attributes: ['id', 'firstName', 'lastName'] },
-                { model: recruiter, as: 'handler', attributes: ['id', 'firstName', 'lastName'] }],
-              },
-              {
-                model: recruiter,
-                attributes: ["firstName", "lastName", "mobile"],
-              },
-            ],
-          },
+          includeReq,
           {
             model: statusCode,
             attributes: ["statusName","statusCode"],
@@ -1858,7 +1899,7 @@ exports.updateJoiningDitchedStatus = async (req, res) => {
 exports.updateInvoicedStatus = async (req, res) => {
   try {
     var can_data = await candidate.findOne({
-      where: { id: req.body.candidateId, statusCode: { [Op.or]: [309, 3081] } },
+      where: { id: req.body.candidateId, statusCode: { [Op.or]: [309, 3081] } },include:[{model:recruiter,attributes:['id'],include:[{model:user,attributes:['roleName']}]},{model:requirement}]
     });
     if (can_data) {
       await can_data.update({
@@ -1878,7 +1919,22 @@ exports.updateInvoicedStatus = async (req, res) => {
             createBy: req.userId,
             updatedBy: req.userId,
           })
-          .then(() => {
+          .then(async () => {
+            
+            if(can_data.recruiter.user.roleName=="SUBCONTRACT")
+            {
+              var isInvoiced=await invoiceableSubContractCandidates.findOne({where:{candidateId:req.body.candidateId}});
+              console.log(isInvoiced,"In Invoice");
+              if(!isInvoiced)
+              {
+                await invoiceableSubContractCandidates.create({
+                  candidateId:req.body.candidateId,
+                  recruiterId:can_data.recruiterId,
+                  amount:Math.floor((can_data.requirement.joinedSharePercentage/100)*req.body.invoice),
+                  mainId:req.mainId
+                });
+              }
+            }
             res.status(200).json({ status: true });
           })
           .catch((e) => {
@@ -2604,7 +2660,7 @@ exports.dropCandidate = async (req, res) => {
         ]).then(() => {
           res
             .status(200)
-            .json({ message: "Candidate Droped Successfully", status: true });
+            .json({ message: "Candidate Dropped Successfully", status: true });
         });
       } else {
         res.status(200).json({ message: "Candidate Not Found", status: false });
@@ -3514,8 +3570,9 @@ exports.reuseCandidate=async(req,res)=>{
 
 
 exports.checkEmailExist=async(req,res)=>{
+  try{
   const roleName=req.roleName;
-  if(roleName=="FREELANCER"||roleName=="SUBVENDOR"){
+  if(roleName=="FREELANCER"||roleName=="SUBVENDOR"||roleName=="SUBCONTRACT"){
     candidateDetails.findOne({where:{email:req.body.email,mainId:req.mainId}}).then(data=>{
       if(data){
         res.status(200).json({status:true,message:"Email Id  is already in use"});
@@ -3540,12 +3597,21 @@ else{
     }
   });
 }
+  }
+  catch(e){
+    console.log(e);
+  res.status(500).json({ status: false, message: "Error" });
+  }
 };
 exports.checkMobileExist = async (req, res) => {
+  try{
+    if(req.body.requirementId=="")
+    {
+      res.status(500).json({status:false,message:"RequirementId is required"});
+    }
   const roleName = req.roleName;
-
   // If the role is FREELANCER or SUBVENDOR
-  if (roleName === "FREELANCER" || roleName === "SUBVENDOR") {
+  if (roleName === "FREELANCER" || roleName === "SUBVENDOR"||roleName==="SUBCONTRACT") {
     candidateDetails.findOne({
       where: {
         mainId: req.mainId,
@@ -3564,6 +3630,7 @@ exports.checkMobileExist = async (req, res) => {
   } else {
     // For other roles
     candidate.findOne({
+
       where: { requirementId: req.body.requirementId },
       include: [{
         model: candidateDetails,
@@ -3582,6 +3649,12 @@ exports.checkMobileExist = async (req, res) => {
       }
     });
   }
+}
+catch(e)
+{
+  console.log(e);
+  res.status(500).json({ status: false, message: "Error" });
+}
 };
 
 

@@ -96,7 +96,7 @@ exports.addAdmin = async (req, res) => {
           await Source.create(
             {
                 mainId: data.id,
-                name:"Freelancer",
+                name:"Sub-Contract",
                 uniqueId:"SOURCE10001",
                 sourceText:"SOURCE",
                 sourceInt:10001
@@ -829,6 +829,42 @@ exports.getVendorCreds =async (req,res)=>{
       res.status(500).json({message:"Error",status:false})
     }
 };
+  
+exports.getVendorCredsCC =async (req,res)=>{
+  try{
+    const page = req.body.page ? req.body.page : 1;
+    const limit = 10;
+    const offset = (page - 1) * limit;
+      var creds_data = await recCredsRecord.findAndCountAll({
+        distinct:true,
+        where: { vendorId: req.body.id},
+        include: [
+          {model:recordsVaule,attributes:['value','reason','status','createdAt','id'],required:false},
+          { model: recruiter, attributes: ['firstName', 'lastName'], as: 'vendor'},
+          { model: requirement,required:true, attributes: ['requirementName', 'uniqueId'],include:[{model:client,attributes:['handlerId'],required:true,where:{handlerId:req.recruiterId}}] },
+          { 
+            model: candidate, 
+            attributes: ['id', 'uniqueId'], 
+            required:false,
+            include: [
+              { model: candidateDetail, attributes: ['firstName', 'lastName']}
+            ]
+          }
+        ],
+        limit: limit, 
+        offset: offset,
+        order: [['createdAt', 'DESC']]
+      });
+        res.status(200).json({data:creds_data.rows,count:creds_data.count,status:true});
+    }
+    catch(e)
+    {
+      console.log(e);
+      res.status(500).json({message:"Error",status:false})
+    }
+};
+
+
 exports.companySettings = async (req, res) => {
   console.log(req.body);
   const rec_data = await user.findOne({ where: { id: req.body.recruiterId }, include: [{ model: recruiter, attributes: ["id"] }] });
